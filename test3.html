@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>svg</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+    <!-- <div id="btnc" onclick="test()">123</div>
+    <svg id="svgdom" width="1000" height="1000" xmlns="http://www.w3.org/2000/svg">      
+    </svg> -->
+    <img style="width: 500px; height: 500px;" src="http://imgbed.singleronbio.com/dotplot.svg" alt="">
+
+
+</body>
+<script>
+    var svgdom = document.getElementById("svgdom")
+
+    // function test1() {
+    //     console.log('2344');
+    // }
+
+
+    function test() {
+        axios({
+            // url: 'https://singleronbio-database-local-tmp.s3.cn-northwest-1.amazonaws.com.cn/public/vam18f7ajn/8597ebbf38754b5ba9f91aebbb641cfa/PublicTrajectoryAnalysis/9320656a-abc3-40c9-ab73-4e3f7395cfe2/celltype.svg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA6EWQGDHC26JWT3HO%2F20220628%2Fcn-northwest-1%2Fs3%2Faws4_request&X-Amz-Date=20220628T061556Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=e912949cc2c513d973cc85db31ef7f37de3884dcebace2f0b7f23c36a27dc2db',
+            url: 'https://singleronbio-database-local-tmp.s3.cn-northwest-1.amazonaws.com.cn/user/vam18f7ajn/4eefcc538a634b4cba403c552f8ba754/PublicTrajectoryAnalysis/398012fd-80ed-4351-8352-33895fcf9349/pseudotime.svg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA6EWQGDHC26JWT3HO%2F20220623%2Fcn-northwest-1%2Fs3%2Faws4_request&X-Amz-Date=20220623T140510Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=0b4e0d3e0747e38f17e0207dda2b898de3048770e1955cd24b776a210be105e3',
+            method: "GET",
+        }).then((res) => {
+            svgdom.innerHTML = res.data;
+        });
+    }
+</script>
+
+
+<!-- <body>
+    <div>
+
+        <button class="btn" onclick="qqq()">999999999</button>
+        <div id="abc" style="width:500px;height:500px">
+            66
+        </div>
+        <select name="" id="" onclick="www(value)">
+            <option value="2">223</option>
+            <option value="3">334</option>
+            <option value="4">112</option>
+        </select>
+
+    </div>
+</body>
+<script>
+    // 都需要获取到dom
+    var abc = document.getElementById('abc')
+        // 方法一：
+    abc.addEventListener('click', (e) => {
+        console.log(e);
+        console.log('222222222222');
+    })
+
+    // 方法二：
+    let btn = document.querySelector('.btn')
+    btn.onclick = function() {
+            console.log('1111111111');
+        }
+        // 方法三：
+    function www(a) { // 标签上通过写onclick注册事件，但是方法名后面要加一个（）
+        console.log(a); // 打印的是select选中的值
+    }
+</script> -->

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>互作图</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+
+<body>
+
+    <svg height="500" width="500" style="border: 1px solid red;">
+        <g>
+            <circle cx="250" cy="100" r="40" stroke="black"
+            stroke-width="2" fill="red">A</circle>
+        </g>
+        <g>
+            <circle cx="400" cy="250" r="40" stroke="black"
+            stroke-width="2" fill="red">A</circle>
+        </g>
+        <g>
+            <circle cx="250" cy="400" r="40" stroke="black"
+            stroke-width="2" fill="red">A</circle>
+        </g>
+        <g>
+            <circle cx="100" cy="250" r="40" stroke="black"
+            stroke-width="2" fill="red">A</circle>
+        </g>
+        <path d="M250,100
+        A50,20,40,0,400,250
+        style="stroke: red; stroke-width: 2;"/>
+    </svg>
+
+
+    <svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">      
+        <image
+            href=
+            "https://singleronbio-database-local-tmp.s3.cn-northwest-1.amazonaws.com.cn/public/vam18f7ajn/8597ebbf38754b5ba9f91aebbb641cfa/PublicTrajectoryAnalysis/9320656a-abc3-40c9-ab73-4e3f7395cfe2/celltype.svg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA6EWQGDHC26JWT3HO%2F20220628%2Fcn-northwest-1%2Fs3%2Faws4_request&X-Amz-Date=20220628T061556Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=e912949cc2c513d973cc85db31ef7f37de3884dcebace2f0b7f23c36a27dc2db"
+            x="100" y="100" />
+    </svg>
+
+    <img src="https://singleronbio-database-local-tmp.s3.cn-northwest-1.amazonaws.com.cn/user/vam18f7ajn/4eefcc538a634b4cba403c552f8ba754/PublicTrajectoryAnalysis/398012fd-80ed-4351-8352-33895fcf9349/pseudotime.svg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA6EWQGDHC26JWT3HO%2F20220623%2Fcn-northwest-1%2Fs3%2Faws4_request&X-Amz-Date=20220623T140510Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=0b4e0d3e0747e38f17e0207dda2b898de3048770e1955cd24b776a210be105e3"
+        alt="">
+
+</body>
+<script>
+    //数据
+    var nodes = [ //节点集
+        {
+            name: "A"
+        }, {
+            name: "B"
+        }, {
+            name: "C"
+        }, {
+            name: "D"
+        }, {
+            name: "E"
+        }, {
+            name: "F"
+        },
+    ];
+
+    var links = [ //边集
+        {
+            source: 0,
+            target: 0,
+            value: 1
+        }, {
+            source: 1,
+            target: 0,
+            value: 1.3
+        }, {
+            source: 2,
+            target: 0,
+            value: 1.3
+        }, {
+            source: 0,
+            target: 2,
+            value: 2
+        }, {
+            source: 2,
+            target: 1,
+            value: 1.3
+        }, {
+            source: 3,
+            target: 2,
+            value: 1.3
+        }, {
+            source: 4,
+            target: 3,
+            value: 1.3
+        }, {
+            source: 5,
+            target: 4,
+            value: 1.3
+        }, {
+            source: 0,
+            target: 5,
+            value: 1.3
+        },
+    ];
+
+    var margin = 30; //边距
+    var svg = d3.select('svg');
+    var width = svg.attr('width');
+    var height = svg.attr('height');
+
+    //创建一个分组 并设置偏移
+    var g = svg.append('g').attr('transform', 'translate(' + margin + ',' + margin + ')');
+
+    // //新建一个颜色比例尺
+    // var scaleColor = d3.scaleOrdinal()
+    //     .domain(d3.range(nodes.length))
+    //     .range(d3.schemeCategory10);
+
+    // // 创建节点
+    // g.selectAll('circle').data(nodes).enter()
+    //     .append('circle')
+    //     .attr('cx', function(d, i) {
+    //         return (i + 1) * 10
+    //     })
+    //     .attr('cy', function(d, i) {
+    //         return (i + 1) * 30
+    //     })
+    //     .attr('r', '5')
+    //     .attr('fill', function(d, i) {
+    //         return scaleColor(i);
+    //     })
+    //     .attr('stroke-width', '2')
+
+    // svg.append("defs").selectAll("marker")
+    //     .data(nodes)
+    //     .join("marker")
+    //     .attr("id", d => `arrow-${d}`)
+    //     .attr("viewBox", "0 -5 10 10")
+    //     .attr("refX", 15)
+    //     .attr("refY", -0.5)
+    //     .attr("markerWidth", 6)
+    //     .attr("markerHeight", 6)
+    //     .attr("orient", "auto")
+    //     .append("path")
+    //     .attr("fill", scaleColor)
+    //     .attr("d", "M0,-5L10,0L0,5");
+</script>

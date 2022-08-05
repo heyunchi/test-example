@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <style>
+        #wrapper {
+            background-image: radial-gradient( circle closest-side, white, lightgray);
+            text-align: center;
+        }
+        
+        .btn {
+            color: mediumblue;
+            background: transparent;
+            border: 2px solid mediumblue;
+            border-radius: 6px;
+            padding: 8px 16px;
+            text-align: center;
+            display: inline-block;
+            font-size: 0.8em;
+            margin: 4px 2px;
+            -webkit-transition-duration: 0.4s;
+            /* Safari */
+            transition-duration: 0.4s;
+            cursor: pointer;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+        
+        .btn:hover {
+            background-color: mediumblue;
+            color: white;
+        }
+        
+        .btn:focus {
+            background-color: mediumblue;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id='wrapper'>
+        <input name="type" type="button" class="btn morph" value="Morph" />
+        <input name="type" type="button" class="btn reset" value="Reset" />
+        <div id="chart"></div>
+    </div>
+    <script>
+        var morph = function() {
+
+            ///////////////////////////////////////////////////////////////////////////
+            ///////////////////////////////// Globals /////////////////////////////////
+            /////////////////////////////////////////////////////////////////////////// 
+
+            var canvasDim = {
+                width: 600,
+                height: 900
+            }
+            var margin = {
+                top: -20,
+                right: 5,
+                bottom: 5,
+                left: 5
+            }
+            var width = canvasDim.width - margin.left - margin.right
+            var height = canvasDim.height - margin.top - margin.bottom
+            var radius = canvasDim.width * 0.4
+
+            var circleG, pathG, circle, path
+            var clicked = 1
+            var nodeRadius = 10
+            var modal = d3.select("#chart")
+
+            ///////////////////////////////////////////////////////////////////////////
+            ////////////////////////////////// MORPH //////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////
+
+            return {
+                clear: function() {
+                    modal.select("svg").remove()
+                },
+                run: function() {
+
+                    //////////////////// Set up and initiate containers ///////////////////////
+                    var svg = modal.append("svg")
+                        .attr("width", width + margin.left + margin.right)
+                        .attr("height", height + margin.top + margin.bottom)
+                        .append("g")
+                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                    pathG = svg.append("g")
+                        .attr("class", "pathG")
+
+                    circleG = svg.append("g")
+                        .attr("class", "circleG")
+
+                    var data = createData()
+                    Graph1(data.nodes, data.links) // initial render of layout 1
+
+                    d3.select(".morph")
+                        .on("click", function(e) {
+                            clicked == 1 ? Graph2(data.nodes, data.links) : Graph1(data.nodes, data.links)
+                        }) // toggle between the 2 layouts on click
+
+                    d3.select(".reset")
+                        .on("click", function(e) {
+                            data = createData()
+                            Graph1(data.nodes, data.links)
+                        })
+
+                }
+            }
+
+            function randomHexColor() {
+                //随机生成十六进制颜色 
+                var hex = Math.floor(Math.random() * 16777216).toString(16);
+                //生成ffffff以内16进制数 
+                while (hex.length < 6) {
+                    //while循环判断hex位数，少于6位前面加0凑够6位
+                    hex = '0' + hex;
+                }
+                return '#' + hex; //返回‘#'开头16进制颜色
+            }
+
+            ///////////////////////////////////////////////////////////////////////////
+            /////////////////////// Generate random data /////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////
+
+            function createData() {
+
+                var nodes = [];
+                const colors = [];
+                var links = [{
+                        id: 1,
+                        source: 0,
+                        target: 1,
+                    }, {
+                        id: 2,
+                        source: 0,
+                        target: 2
+                    }, {
+                        id: 3,
+                        source: 0,
+                        target: 3
+                    }, {
+                        id: 4,
+                        source: 3,
+                        target: 0
+                    }, {
+                        id: 5,
+                        source: 0,
+                        target: 3
+                    },
+
+                ]
+                d3.range(0, 20).map(function(d, i) {
+                    const color = randomHexColor();
+                    colors.push(color)
+                    nodes.push({
+                        id: d,
+                        color
+                    })
+                    if (links[i]) {
+                        links[i].color = color;
+                    }
+                })
+
+
+                // d3.range(0, 25).map(function(d, i) {
+                //     links.push({
+                //         id: i,
+                //         source: getRandomInt(0, 19),
+                //         target: getRandomInt(0, 19)
+                //     })
+                // })
+
+                console.log(nodes);
+                console.log(links);
+
+                return {
+                    nodes: nodes,
+                    links: links
+                }
+            }
+
+            // function handleCenterPoint(targetX, targetY, sourceX, sourceY, distance) {
+            //     const K1 = (targetY - sourceY) / (targetX - sourceX);
+            //     const centerK2 = -((targetX - sourceX) / (targetY - sourceY));
+            //     const centerX = (targetX + sourceX) / 2;
+            //     const centerY = (targetY + sourceY) / 2;
+
+            //     // y = kx + b;
+            //     const b = centerY + ((targetX - sourceX) / (targetY - sourceY) * centerX);
+            //     const objC = {
+            //         x: 0,
+            //         y: 0
+            //     };
+
+            //     objC.y = centerK2 * objC.x + b
+            // }
+
+
+            function handleCenterPoint(targetX, targetY, sourceX, sourceY, scale) {
+                const x = (scale * Math.abs(sourceY - targetY)) / 2 + (sourceX + targetX) / 2;
+                const y = (scale * Math.abs(sourceX - targetX)) / 2 + (sourceY + targetY) / 2;
+                return {
+                    centerX: x,
+                    centerY: y
+                }
+            }
+
+            ///////////////////////////////////////////////////////////////////////////
+            //////////////////// Update node and link positions ///////////////////////
+            ///////////////////////////////////////////////////////////////////////////
+
+            function update(nodes, links) {
+
+                circle = circleG.selectAll('circle').data(nodes, d => d.id)
+
+                circle.exit().remove()
+
+                entered_circle = circle
+                    .enter().append('circle')
+                    .attr('r', nodeRadius)
+                    .attr('stroke-width', 2)
+                    .attr('stroke', function(d) {
+                        return d.color
+                    })
+                    .attr('fill', function(d) {
+                        return d.color
+                    })
+                    .attr('cx', function(d) {
+                        return d.x
+                    })
+                    .attr('cy', function(d) {
+                        return d.y
+                    })
+
+                circle = circle.merge(entered_circle)
+
+                circle.transition().duration(1000)
+                    .attr('cx', function(d) {
+                        return d.x
+                    })
+                    .attr('cy', function(d) {
+                        return d.y
+                    })
+                    .attr('id', function(d) {
+                        return "node-" + d.id.toString() + "-"
+                    })
+
+                path = pathG.selectAll('path').data(links, d => d.id)
+
+                path.exit().remove()
+
+                entered_path = path
+                    .enter().append('path')
+                    .attr('opacity', 1)
+                    .attr('stroke-linecap', 'round')
+                    .attr('stroke-width', '2px')
+                    .attr('fill', 'transparent')
+
+                path = path.merge(entered_path)
+
+                path.transition().duration(1000)
+                    .attr('id', function(d) {
+                        return "link" + "-source-" + d.source.id.toString() + "-target-" + d.target.id.toString() + "-"
+                    })
+                    // .attr("d", function(d) {
+                    //     var dx = d.target.x - d.source.x,
+                    //         dy = d.target.y - d.source.y,
+                    //         dr = Math.sqrt(dx * dx + dy * dy);
+
+                //     return "M" +
+                //         d.source.x + "," +
+                //         d.source.y + "L" +
+                //         d.target.x + "," +
+                //         d.target.y
+                // })
+                .attr("d", function(d) {
+                        var dx = d.target.x - d.source.x,
+                            dy = d.target.y - d.source.y;
+                        // xddr = Math.floor(dr / 2);
+                        // yddr = Math.floor(xddr / 7)
+                        //     centerX = Math.floor(d.source.x + d.target.x) / 2 + d.source.x / 2;
+                        // centerY = Math.floor(d.source.y + d.target.y) / 2 - d.source.y / 2;
+                        var centerX, centerY;
+                        // if (d.target.x - d.source.x > 0) {
+                        //     centerX = Math.floor(d.source.x + d.target.x) / 2 + d.source.x / 2;
+                        //     centerY = Math.floor(d.source.y + d.target.y) / 2 - d.source.y / 2;
+                        // } else {
+                        //     centerX = Math.floor(d.source.x + d.target.x) / 2 - d.source.x / 2;
+                        //     centerY = Math.floor(d.source.y + d.target.y) / 2 + d.source.y / 2;
+                        // }
+                        const data = handleCenterPoint(d.target.x, d.target.y, d.source.x, d.source.y, 0.2);
+                        console.log(data);
+                        centerX = data.centerX;
+                        centerY = data.centerY;
+
+                        // return `M ${d.source.x}, ${d.source.y} a${yddr}, ${xddr} 0  1, 0 ${dx}, ${dy}`
+                        return `M ${d.source.x}, ${d.source.y} Q${centerX}, ${centerY} ${d.target.x}, ${d.target.y}`
+                    })
+                    .attr('stroke-width', '2px')
+                    .attr('fill', 'transparent')
+                    .attr('stroke', function(d) {
+                        return d.source.color
+                    })
+
+            }
+
+
+            ///////////////////////////////////////////////////////////////////////////
+            ///////////////////////////// Render Layout 1 /////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////
+
+            function Graph1(nodes, links) {
+
+                nodes.forEach((d, i) => {
+                    var radian = (2 * Math.PI) / 20 * i - (Math.PI / 2);
+                    d.fx = radius * Math.cos(radian) + (width / 2)
+                    d.fy = radius * Math.sin(radian) + (height / 2)
+
+                })
+
+                var simulation1 = d3.forceSimulation(nodes)
+                    .force("link", d3.forceLink(links).id(function(d) {
+                        return d.id;
+                    }))
+
+                for (var i = 0; i < 100; ++i) simulation1.tick()
+
+                update(nodes, links)
+
+                clicked = 1
+
+            }
+
+
+            ///////////////////////////////////////////////////////////////////////////
+            ///////////////////////////// Render Layout 2 /////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////
+
+            function Graph2(nodes, links) {
+
+                nodes.forEach((d, i) => {
+                    d.fx = null
+                    d.fy = null
+
+                })
+
+                var simulation2 = d3.forceSimulation(nodes)
+                    .force("link", d3.forceLink(links).id(function(d) {
+                        return d.id;
+                    }).strength(0.1))
+                    .force('charge', d3.forceManyBody())
+                    .force("center", d3.forceCenter(width / 2, height / 2))
+
+                for (var i = 0; i < 100; ++i) simulation2.tick()
+
+                update(nodes, links)
+
+                clicked = 2
+
+            }
+
+            ///////////////////////////////////////////////////////////////////////////
+            //////////////////////////// Helper functions /////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////
+
+            function getRandomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+        }()
+    </script>
+    <script>
+        morph.run()
+    </script>
+</body>
+
+</html>
