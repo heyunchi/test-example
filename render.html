@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<head lang="en">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="render-queue.js"></script>
+    <!DOCTYPE html>
+    <script type="text/javascript" src="streaming-line-chart.js"></script>
+    <script type="text/javascript" src="chart-utils.js"></script>
+    <script type="text/javascript" src="chart-tooltip.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+
+    <script type="text/template" id="line-chart-template">
+        <div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="bg">
+            <g class="chart-group">
+                <g class="background"><rect class="panel-bg" /></g>
+                <g class="axis-y axis-y2"></g>
+                <g class="axis-y axis-y1"></g>
+                <g class="axis-x"></g>
+                <rect class="axis-x-bg" />
+            </g>
+        </svg>
+            <canvas class="geometry"></canvas>
+            <svg xmlns="http://www.w3.org/2000/svg" class="axes">
+            <g class="chart-group">
+                <g class="axis-x"></g>
+                <rect class="axis-y-bg" />
+                <g class="axis-y axis-y2"></g>
+                <g class="axis-y axis-y1"></g>
+            </g>
+        </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="interaction">
+            <g class="hover-group"><line class="hover-guide-x"/></g>
+            <g class="brush-group"></g>
+        </svg>
+        </div>
+    </script>
+
+    <div class="boundary-chart-container" id="new-line-chart">
+        <div class="boundary-chart" id="scrubber-line-chart"></div>
+        <div class="boundary-chart" id="main-line-chart"></div>
+        <div class="boundary-chart" id="bar-chart"></div>
+        <div class="boundary-chart-tooltip"></div>
+    </div>
+
+
+    <script>
+        // data
+        //-----------------------------------------------------
+        var pointCount = 10000;
+        var startDate = new Date();
+        var timeSeries = d3.range(pointCount).map(function(d, i) {
+            startDate.setUTCSeconds(startDate.getUTCSeconds() + 1);
+            return d3.time.format.iso.parse(startDate.toISOString());
+        });
+        var pointSeriesGenerator = function(_min, _max) {
+            return d3.range(pointCount).map(function(d, i) {
+                return ~~(Math.random() * (_max - _min) + _min) / 100;
+            });
+        };
+        var colors = d3.scale.category20().range();
+        var dataset = [{
+            x: timeSeries,
+            y: pointSeriesGenerator(10, 30),
+            y2: pointSeriesGenerator(25, 40),
+            name: 'line A',
+            color: colors[0]
+        }, {
+            x: timeSeries,
+            y: pointSeriesGenerator(5, 15),
+            y2: pointSeriesGenerator(30, 35),
+            name: 'line B',
+            color: colors[1]
+        }, {
+            x: timeSeries,
+            y: pointSeriesGenerator(10, 12),
+            y2: pointSeriesGenerator(20, 35),
+            name: 'line C',
+            color: colors[2]
+        }, {
+            x: timeSeries,
+            y: pointSeriesGenerator(30, 50),
+            y2: pointSeriesGenerator(25, 30),
+            name: 'line D',
+            color: colors[3]
+        }, {
+            x: timeSeries,
+            y: pointSeriesGenerator(2, 5),
+            y2: pointSeriesGenerator(30, 40),
+            name: 'line E',
+            color: colors[4]
+        }, {
+            x: timeSeries,
+            y: pointSeriesGenerator(10, 12),
+            y2: pointSeriesGenerator(30, 40),
+            name: 'line F',
+            color: colors[5]
+        }];
+
+
+        // line charts
+        //-----------------------------------------------------
+        var lineChartNode = document.querySelector('#new-line-chart');
+        var mainLineChartNode = lineChartNode.querySelector('#main-line-chart');
+        var scrubberLineChartNode = lineChartNode.querySelector('#scrubber-line-chart');
+        var barChartNode = lineChartNode.querySelector('#bar-chart');
+        var scrubberHeight = 100;
+        var barChartHeight = 50;
+
+        var mainLineChart = LineChart().setConfig({
+            width: lineChartNode.clientWidth,
+            height: lineChartNode.clientHeight - scrubberHeight,
+            container: mainLineChartNode,
+            suggestedYTicks: 4,
+            suffix: 'Gbps',
+            resolution: 'second',
+            progressiveRenderingRate: 100
+        });
+
+        var scrubberLineChart = LineChart().setConfig({
+            width: lineChartNode.clientWidth,
+            height: scrubberHeight,
+            container: scrubberLineChartNode,
+            suggestedYTicks: 4,
+            useBrush: true,
+            resolution: 'second',
+            showAxisY: false,
+            brushThrottleWaitDuration: 300
+        });
+
+
+        // tooltip
+        //-----------------------------------------------------
+        var tooltip = Tooltip().setConfig({
+            container: lineChartNode.querySelector('.boundary-chart-tooltip'),
+            bound: mainLineChart.getCanvasNode()
+        });
+
+        var tooltipOffset = mainLineChartNode.getBoundingClientRect().top;
+
+        function tooltipOnDotHover(pos, d) {
+            tooltip.setConfig({
+                    pos: {
+                        x: pos.x + 10,
+                        y: pos.y + tooltipOffset - 10
+                    }
+                })
+                .setData({
+                    text: d.name + ' : ' + d.closestY
+                })
+                .show();
+        }
+
+        function tooltipOnMouseOut() {
+            tooltip.hide();
+        }
+
+
+        // bind events
+        //-----------------------------------------------------
+        mainLineChart
+            .on('dotHover', tooltipOnDotHover)
+            .on('dotMouseOut', tooltipOnMouseOut);
+
+        // sample info for sizing the brush on init
+        var lastTimeSeriesPointIdx = timeSeries.length - 1;
+        var brushSizeInSample = 1000;
+
+        scrubberLineChart
+            .on('brushChange', function(brushExtent) {
+                mainLineChart.setZoom(brushExtent);
+            })
+            .setBrushSelection([timeSeries[lastTimeSeriesPointIdx - brushSizeInSample], timeSeries[lastTimeSeriesPointIdx]]);
+
+
+        // set data
+        //-----------------------------------------------------
+        scrubberLineChart.setData(dataset);
+        mainLineChart.setData(dataset).setZoom(scrubberLineChart.getBrushExtent());
+    </script>
+
+</body>
+
+</html>

@@ -10,10 +10,13 @@ import { DataFrame } from "dataframe-js";
 const df = new DataFrame([
     [1, 6, 9, 10, 12], // <------- A row
     [1, 2],
-    [6, 6, 9, 8, 9, 12],
+    [6, 7, 9, 8, 9, 12],
 ], ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']);
 
-df.show();
-const data = df.toCollection()
-    // const data = df.toDict()
+// df.show();
+// const data = df.toCollection()
+const data = df.select('c2').toDict()
+    // const data1 = df.filter({ 'c1': 1 });
+const max = df.stat.max('c2')
 console.log(data);
+console.log(max);

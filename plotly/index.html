@@ -1,0 +1,116 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+</head>
+
+<body>
+
+    <script type="text/javascript" src="plotlyjs-bundle.js"></script>
+
+
+    <script type="text/javascript" src="figure.js"></script>
+
+    <div id="50c46572-9dcb-49eb-a7ca-2548cf57c908" style="width: 100%; height: 100%;" class="plotly-graph-div"></div>
+    <script type="text/javascript">
+        (function() {
+            window.PLOTLYENV = {
+                'BASE_URL': 'https://plotly.com'
+            };
+
+            var gd = document.getElementById('50c46572-9dcb-49eb-a7ca-2548cf57c908')
+            var resizeDebounce = null;
+
+            function resizePlot() {
+                var bb = gd.getBoundingClientRect();
+                Plotly.relayout(gd, {
+                    width: bb.width,
+                    height: bb.height
+                });
+            }
+
+
+            var xCoordinate = figure.data[0].x;
+            var yCoordinate = figure.data[0].y;
+            var xnum = 1;
+            var ynum = 11;
+            var intervalList = [];
+            Plotly.react(gd, {
+                data: figure.data,
+                layout: figure.layout,
+                frames: figure.frames,
+                config: {
+                    "showLink": true,
+                    "linkText": "Export to plotly.com",
+                    "mapboxAccessToken": "pk.eyJ1IjoiY2hyaWRkeXAiLCJhIjoiY2lxMnVvdm5iMDA4dnhsbTQ5aHJzcGs0MyJ9.X9o_rzNLNesDxdra4neC_A"
+                }
+            });
+
+            function restylePlot() {
+                // const update = {
+                //     x: [xCoordinate],
+                //     y: [yCoordinate],
+                // };
+                // console.log('+++++++++');
+                // console.log(xCoordinate);
+                // console.log(yCoordinate);
+                // console.log(figure);
+                // Plotly.redraw(gd)
+                // Plotly.update(gd, update);
+
+                Plotly.extendTraces(gd, {
+                    y: [
+                        [rand()]
+                    ]
+                }, [0])
+            }
+            const xArray = [];
+            const yArray = [];
+            console.time();
+            for (let i = 0; i < 200000; i++) {
+                xArray.push(Math.random() * 100);
+                yArray.push(Math.random() * 1000);
+            }
+            console.timeLog()
+
+            var cnt = 0;
+            const pageSize = 10000;
+            const pageCount = Math.ceil(xArray.length / pageSize);
+            let currentPage = 1;
+            var interval = setInterval(function() {
+                // xnum++;
+                // ynum++;
+                // xnum = xnum++ * 3;
+                // ynum = ynum++ * 3;
+                // xCoordinate.push(xnum);
+                // yCoordinate.push(ynum);
+                const start = (currentPage - 1) * pageSize;
+                const end = currentPage * pageSize;
+                const xArray1 = xArray.length > 0 ? xArray.slice(start, end) : [];
+                const yArray1 = yArray.length > 0 ? yArray.slice(start, end) : [];
+                // xCoordinate.push(...xArray1);
+                // yCoordinate.push(...yArray1);
+                xCoordinate = xArray1;
+                yCoordinate = yArray1;
+                // restylePlot()
+
+                Plotly.extendTraces(gd, {
+                    x: [xArray1],
+                    y: [yArray1]
+                }, [0])
+
+
+                intervalList.push(interval);
+                if (currentPage++ === pageCount) {
+                    intervalList.forEach(item => {
+                        clearInterval(item);
+                    });
+                    console.timeEnd();
+                }
+            }, 1000);
+
+        }());
+    </script>
+</body>
+
+</html>
