@@ -8,7 +8,9 @@
 </head>
 
 <body>
+
     <svg height="400" width="500"></svg>
+
 </body>
 
 <script>
@@ -32,59 +34,47 @@
         {
             source: 0,
             target: 0,
-            force: 2,
-            step: 1
-
+            force: 2
         }, {
             source: 0,
             target: 1,
-            force: 2,
-            step: 1
+            force: 2
         }, {
             source: 1,
             target: 0,
-            force: 1,
-            step: 1
+            force: 1
         }, {
             source: 1,
             target: 2,
-            force: 1,
-            step: 1
+            force: 1
         }, {
             source: 2,
             target: 1,
-            force: 1,
-            step: 1
+            force: 1
         }, {
             source: 2,
             target: 3,
-            force: 2,
-            step: 1
+            force: 2
         }, {
             source: 3,
             target: 2,
-            force: 0.9,
-            step: 1
+            force: 0.9
         }, {
             source: 4,
             target: 5,
-            force: 2,
-            step: 1
+            force: 2
         }, {
             source: 5,
             target: 0,
-            force: 2,
-            step: 1
+            force: 2
         }, {
             source: 3,
             target: 4,
-            force: 1,
-            step: 1
+            force: 1
         }, {
             source: 3,
             target: 0,
-            force: 1,
-            step: 3
+            force: 1
         }
     ];
 
@@ -131,7 +121,7 @@
             // if ((d.target.index - d.source.index) !== 0) {
             //     return (d.target.index - d.source.index) * 60; //设置边长
             // }
-            return (d.step * 60);
+            return 60;
 
         });
 
