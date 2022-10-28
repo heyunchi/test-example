@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <div id='wrapper'>
+        <div id="chart"></div>
+    </div>
+    <script>
+        var morph = function() {
+            var canvasDim = {
+                width: 600,
+                height: 900
+            }
+            var margin = {
+                top: -10,
+                right: 5,
+                bottom: 5,
+                left: 5
+            }
+            var width = canvasDim.width - margin.left - margin.right
+            var height = canvasDim.height - margin.top - margin.bottom
+            var radius = canvasDim.width * 0.4
+
+            var circleG, pathG, textG, circle, path, text
+            var nodeRadius = 20
+            var modal = d3.select("#chart")
+
+            return {
+                clear: function() {
+                    modal.select("svg").remove()
+                },
+                run: function() {
+                    //////////////////// Set up and initiate containers ///////////////////////
+                    var svg = modal.append("svg")
+                        .attr("width", width + margin.left + margin.right)
+                        .attr("height", height + margin.top + margin.bottom)
+                        .attr('style', 'border: 1px solid red')
+                        .attr('stroke', '#000000')
+                        .append("g")
+                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                    pathG = svg.append("g")
+                        .attr("class", "pathG")
+
+                    circleG = svg.append("g")
+                        .attr("class", "circleG")
+                    textG = svg.append('g')
+                        .attr("class", "textG")
+
+                    var data = createData()
+                    Graph1(data.nodes, data.links) // initial render of layout 1
+                }
+            }
+
+            function randomHexColor() {
+                //随机生成十六进制颜色 
+                var hex = Math.floor(Math.random() * 16777216).toString(16);
+                //生成ffffff以内16进制数 
+                while (hex.length < 6) {
+                    //while循环判断hex位数，少于6位前面加0凑够6位
+                    hex = '0' + hex;
+                }
+                return '#' + hex; //返回‘#'开头16进制颜色
+            }
+
+            function createData() {
+
+                //数据
+                var nodes = [ //节点集
+                    {
+                        name: "Dc"
+                    }, {
+                        name: "M2c"
+                    }, {
+                        name: "T_cell"
+                    }, {
+                        name: "Glial cells"
+                    }, {
+                        name: "Plasmacytoid"
+                    }, {
+                        name: "Glial "
+                    }
+                ];
+                var links = [ //边集
+                    {
+                        source: 0,
+                        target: 1,
+                        force: 1
+                    }, {
+                        source: 0,
+                        target: 0,
+                        force: 1
+                    }, {
+                        source: 1,
+                        target: 0,
+                        force: 2
+                    }, {
+                        source: 1,
+                        target: 2,
+                        force: 1
+                    }, {
+                        source: 2,
+                        target: 1,
+                        force: 1
+                    }, {
+                        source: 2,
+                        target: 2,
+                        force: 1
+                    }, {
+                        source: 2,
+                        target: 3,
+                        force: 1
+                    }, {
+                        source: 3,
+                        target: 4,
+                        force: 1
+                    }, {
+                        source: 4,
+                        target: 5,
+                        force: 1
+                    }, {
+                        source: 5,
+                        target: 0,
+                        force: 1
+                    }
+                ];
+
+                const colors = [];
+                nodes = nodes.map(function(d, i) {
+                    const color = randomHexColor();
+                    colors.push(color)
+                    return {
+                        id: d.name,
+                        color
+                    }
+                })
+
+                console.log(nodes);
+                console.log(links);
+
+                return {
+                    nodes: nodes,
+                    links: links
+                }
+            }
+
+            function update(nodes, links) {
+
+                circle = circleG.selectAll('circle').data(nodes, d => d.id)
+
+                circle.exit().remove()
+
+                entered_circle = circle
+                    .enter().append('circle')
+                    .attr('r', nodeRadius)
+                    .attr('stroke-width', 1)
+                    .attr('stroke', '#000000')
+                    .attr('fill', function(d) {
+                        return d.color
+                    })
+                    .attr('cx', function(d) {
+                        return d.x
+                    })
+                    .attr('cy', function(d) {
+                        return d.y
+                    })
+                text = textG.selectAll('text').data(nodes, d => d.id)
+                text.exit().remove()
+
+                entered_text = text
+                    .enter().append('text')
+                    .text(d => d.id)
+                    .attr("font-size", 12)
+                    .attr("stroke", '#000000')
+                    // .attr("stroke-width", 1)
+                    .attr('x', function(d) {
+                        return d.x + nodeRadius
+                    })
+                    .attr('y', function(d) {
+                        return d.y + nodeRadius
+                    })
+
+                circle = circle.merge(entered_circle)
+                text = text.merge(entered_text)
+                path = pathG.selectAll('path').data(links)
+
+                path.exit().remove()
+
+                entered_path = path
+                    .enter().append('path')
+                    .attr('stroke-linecap', 'round')
+                path = path.merge(entered_path)
+                    .attr('stroke-width', function(d) {
+                        return d.force + 'px'
+                    })
+                    .attr('fill', 'transparent')
+                    .attr('stroke', function(d) {
+                        return d.source.color
+                    })
+                    .attr('d', linkArc)
+
+            }
+
+            function linkArc(d) {
+                if (d.source.id === d.target.id) {
+                    const newPoint = {
+                        x: d.source.x,
+                        y: d.source.y + 20
+                    }
+                    var dx = newPoint.x - d.source.x,
+                        dy = newPoint.y - d.source.y,
+                        dr = Math.sqrt(dx * dx + dy * dy);
+                    return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 1,1" + newPoint.x + "," + newPoint.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+                } else {
+                    var dx = d.target.x - d.source.x,
+                        dy = d.target.y - d.source.y,
+                        dr = Math.sqrt(dx * dx + dy * dy);
+                    return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+                }
+
+            }
+
+            function Graph1(nodes, links) {
+
+                nodes.forEach((d, i) => {
+                    var radian = (2 * Math.PI) / (nodes.length) * i - (Math.PI / 2);
+                    d.fx = radius * Math.cos(radian) + (width / 2)
+                    d.fy = radius * Math.sin(radian) + (height / 2)
+
+                })
+
+                var simulation1 = d3.forceSimulation(nodes)
+                    .force("link", d3.forceLink(links))
+                simulation1.tick()
+
+                update(nodes, links)
+            }
+        }()
+    </script>
+    <script>
+        morph.run()
+    </script>
+</body>
+
+</html>
